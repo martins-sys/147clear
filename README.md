@@ -1,3 +1,8 @@
+# Aviso
+
+Este repositório é um fork. Em caso de erros durante a execução, nenhum suporte será fornecido. 
+É recomendavel o uso do [script oficial](https://github.com/147organization/147clear).
+
 # 147Clear
 
 <img align="center" alt="GIF" src="https://ik.imagekit.io/147cdn/image.png?updatedAt=1720128947971">
