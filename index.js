@@ -14,20 +14,8 @@ const config = (() => {
   return JSON.parse(fs.readFileSync(path.join(process.cwd(), 'config.json'), 'utf8'));
 })();
 
-const RPC = require('discord-rpc');
 const AdmZip = require('adm-zip');
 const child_process = require("child_process");
-const { timeStamp } = require('console');
-
-const clientId = '1257500388408692800';
-const theme = {
-  "state": `v${VERSAO_ATUAL}`,
-  "details": "No menu principal",
-  "largeImageKey": "fotogrande",
-  "largeImageText": "147 😎",
-  "smallImageKey": "147",
-  "smallImageText": "idle"
-}
 
 let cor = hex(config.cor_painel || '#A020F0');
 const erro = hex('#ff0000');
@@ -35,34 +23,7 @@ const reset = hex('#ffffff');
 const aviso = "\u001b[43";
 
 const sleep = seconds => new Promise(resolve => setTimeout(resolve, seconds * 1000));
-const rpc = new RPC.Client({ transport: 'ipc' });
 moment.locale('pt-BR');
-
-try {
-  RPC.register(clientId);
-  rpc.on('ready', () => {
-    updatePresence(theme);
-  });
-  
-  rpc.login({ clientId }).catch(() => {});
-} catch {}
-
-async function updatePresence(presence, tempo = false) {
-  if (!rpc) return;
-
-  try {
-    const activity = {
-      pid: process.pid,
-      state: presence.state || theme.state,
-      details: presence.details || theme.details,
-      largeImageKey: presence.largeImageKey || theme.largeImageKey,
-      largeImageText: presence.largeImageText || theme.largeImageText,
-      smallImageKey: presence.smallImageKey || theme.smallImageKey,
-      smallImageText: presence.smallImageText || theme.smallImageText,
-    };
-    await rpc.setActivity(activity);
-  } catch {}
-}
 
 function hex(hex) {
   if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) {
@@ -253,11 +214,6 @@ async function clearUnica() {
     await msg.delete().then(async () => {
       contador++;
       await exibirBarraDeProgresso(contador, msgs.length, '147Clear | Limpar com DM única', 'mensagens removidas', `        ${cor}Apagando com${reset} ${nome}\n`, client);
-
-      await updatePresence({
-        state: `${Math.round((contador / msgs.length) * 100)}%`,
-        details: `Apagando mensagens: ${contador}/${msgs.length}`
-      });
     }).catch(() => { });
   }
 
@@ -296,12 +252,6 @@ async function clearAbertas() {
       await msg.delete().then(async () => {
         contador_msgs++;
         await exibirBarraDeProgresso(contador_msgs, msgs.length, "147Clear | Limpar com DMs abertas", "mensagens removidas", `        ${cor}Apagando com${reset} ${dm.recipient.globalName || dm.recipient.username}\n`, client);
-
-        await updatePresence({
-          state: `Na DM com ${dm.recipient.globalName || dm.recipient.username}`,
-          details: `Apagando ${contador_msgs}/${msgs.length} [${Math.round((contador_msgs / msgs.length) * 100)}%]`,
-          largeImageText: `${contador}/${dms.length} DMs limpas`
-        });
       }).catch(() => { })
     }
     if (fechar) await dm.delete().catch(() => { });
@@ -332,10 +282,6 @@ async function removerAmigos() {
     await client.relationships.deleteRelationship(user).then(async () => {
       contador++;
       await exibirBarraDeProgresso(contador, amigos.length, '147Clear | Remover amigos', 'amigos removidos', '', client);
-
-      await updatePresence({
-        details: `Removendo amigos ${contador}/${amigos.length} [${Math.round((contador / amigos.length) * 100)}%]`,
-      });
     }).catch(() => { });
   }
 
@@ -363,10 +309,6 @@ async function removerServidores() {
     await server.leave().then(async () => {
       contador++;
       await exibirBarraDeProgresso(contador, servers.length, '147Clear | Remover servidores', "servidores removidos", '', client);
-
-      await updatePresence({
-        details: `Removendo servidores ${contador}/${servers.length} [${Math.round((contador / servers.length) * 100)}%]`,
-      });
     }).catch(() => { });
   }
 
@@ -394,10 +336,6 @@ async function fecharDMs() {
     await dm.delete().then(async () => {
       contador++;
       await exibirBarraDeProgresso(contador, dms.length, '147Clear | Fechar DMs', "DMs fechadas", '', client);
-
-      await updatePresence({
-        details: `Fechando DMs ${contador}/${dms.length} [${Math.round((contador / dms.length) * 100)}%]`,
-      });
     }).catch(() => { });
   }
 
@@ -502,12 +440,6 @@ async function processarCanais(zipEntries, whitelist) {
         contador++;
 
         await exibirBarraDeProgresso(contador, totalDMs, '147Clear | Apagar package', "DMs limpas", `        ${cor}Apagando com${reset} ${dmChannel.recipient.globalName || dmChannel.recipient.username}\n`, client);
-
-        await updatePresence({
-          details: `Usando CL all`,
-          state: `Apagando ${contador}/${totalDMs} DMs [${Math.round((contador / totalDMs) * 100)}%]`,
-          largeImageText: `Na dm com ${dmChannel.recipient.globalName || dmChannel.recipient.username}`
-        });
       }
     }
   }
@@ -778,10 +710,6 @@ async function abrirDMsComAmigos() {
     await amigokk.createDM().then(async () => {
       contador++;
       await exibirBarraDeProgresso(contador, amigos.length, '147Clear | Abrir DMs', "DMs abertas", '', client);
-
-      await updatePresence({
-        details: `Abrindo DMs com amigos ${contador}/${amigos.length} [${Math.round((contador / amigos.length) * 100)}%]`,
-      });
     }).catch(() => {});
   }
 
@@ -830,10 +758,6 @@ async function abrirTodasAsDMs() {
       await user?.createDM().then(async () => {
         contador++;
         await exibirBarraDeProgresso(contador, totalDMs, '147Clear | Abrir DMs', "DMs abertas", '', client);
-
-        await updatePresence({
-          details: `Abrindo todas as DMs ${contador}/${totalDMs} [${Math.round((contador / totalDMs) * 100)}%]`,
-        });
       }).catch(() => {});
     }
   }
@@ -1047,7 +971,6 @@ async function menu(client) {
 
   process.title = `147Clear | Menu | v${VERSAO_ATUAL}`;
 	
-  await updatePresence(theme);
   await titulo(client?.user?.username || 'a', client?.user?.id || 'ww');
   if (await checarUpdates()) {
     console.log(`        ${cor}[!]${reset} Há uma atualização disponível, vá em https://github.com/147organization/147clear`);
