@@ -7,7 +7,7 @@ const client = new Discord.Client({
 });
 const moment = require("moment");
 const path = require("path");
-const VERSAO_ATUAL = "1.0.8";
+const VERSAO_ATUAL = "1.0.9";
 
 const config = (() => {
 	if (!fs.existsSync("./config.json")) {
