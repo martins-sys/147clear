@@ -26,6 +26,22 @@ const erro = hex("#ff0000");
 const reset = hex("#ffffff");
 const aviso = "\u001b[43";
 
+const opcoesMenu = [
+	{ id: "1", description: "Apagar DM", function: clearUnica },
+	{ id: "2", description: "Apagar DMs abertas", function: clearAbertas },
+	{ id: "3", description: "Apagar package", function: clearPackage },
+	{ id: "4", description: "Remover amigos", function: removerAmigos },
+	{ id: "5", description: "Sair de servidores", function: removerServidores },
+	{ id: "6", description: "Fechar DMs", function: fecharDMs },
+	{ id: "7", description: "Apagar com trigger", function: triggerClear },
+	{ id: "8", description: "Userinfo", function: userInfo },
+	{ id: "9", description: "Abrir DMs", function: abrirDMs },
+	{ id: "10", description: "Utilidades de call", function: utilidadesCall },
+	{ id: "11", description: "Clonar servidor\n", function: clonarSevidor },
+	{ id: "12", description: "Personalizar", function: configurar },
+	{ id: "13", description: "Sair", function: () => process.exit(0) },
+];
+
 const sleep = (seconds) =>
 	new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 moment.locale("pt-BR");
@@ -294,8 +310,8 @@ async function clearAbertas() {
 
 	console.log("Fechar cada DM após apagar as mensagens? [s/sim]");
 	const pergunta = readlineSync.question("> ");
-	const fechar =
-		pergunta.toLowerCase() === "s" || pergunta.toLowerCase() === "sim";
+	const respostasValidas = ["y", "s", "sim", "yes"];
+	const fechar = respostasValidas.includes(pergunta.toLowerCase());
 
 	for (const dm of dms) {
 		contador++;
@@ -739,13 +755,13 @@ async function userInfo() {
 	}
 
 	console.log(`
-    ${reset}├─>${cor} Usuário:${reset}${client.user.globalName ? `${reset} ${client.user.username} (\`${client.user.globalName}\`) > ${cor}${client.user.id}` : `${client.user.username} | ${cor}${client.user.id}`}
-    ${reset}├─>${cor} DMs abertas:${reset} ${dmsAbertas.length}
+    ${reset}├─>${cor} Usuário: ${reset}${client.user.globalName ? `${reset} ${client.user.username} (\`${client.user.globalName}\`) > ${cor}${client.user.id}` : `${client.user.username} | ${cor}${client.user.id}`}
+    ${reset}├─>${cor} DMs abertas: ${reset}${dmsAbertas.length}
     ${
 			nivelImpulsionamento.dataImpulsionamento
 				? `${reset}└─>${cor} Boost:
-    ${reset}  ├─> ${cor} Data início: ${reset} ${nivelImpulsionamento.dataImpulsionamento}
-    ${reset}  └─> ${cor} Data próxima: ${reset} ${nivelImpulsionamento.dataProxima}`
+    ${reset}  ├─> ${cor} Data início: ${reset}${nivelImpulsionamento.dataImpulsionamento}
+    ${reset}  └─> ${cor} Data próxima: ${reset}${nivelImpulsionamento.dataProxima}`
 				: ``
 		}
   `);
@@ -1188,97 +1204,53 @@ async function utilidadesCall() {
 	}
 }
 
-async function menu(client) {
+async function clonarSevidor() {
 	console.clear();
 
+	console.log("Implementar depois.");
+	await sleep(3.5);
+	menu(client);
+}
+
+async function exibirMenu() {
+	console.clear();
 	process.title = `147Clear | Menu | v${VERSAO_ATUAL}`;
 
 	await titulo(
 		client?.user?.username || "Não encontrado",
 		client?.user?.id || "Não encontrado",
 	);
-	// if (await checarUpdates()) {
-	//   console.log(`        ${cor}[!]${reset} Há uma atualização disponível, vá em https://github.com/martins-sys/147clear`);
-	// }
 
-	console.log(`                                                  
-      ${cor}[ 1 ]${reset} Apagar DM única
-      ${cor}[ 2 ]${reset} Apagar DMs abertas
-      ${cor}[ 3 ]${reset} Apagar package
-      ${cor}[ 4 ]${reset} Remover amigos
-      ${cor}[ 5 ]${reset} Remover servidores
-      ${cor}[ 6 ]${reset} Fechar DMs
-      ${cor}[ 7 ]${reset} Apagar com trigger
-      ${cor}[ 8 ]${reset} Userinfo
-      ${cor}[ 9 ]${reset} Abrir DMs
-      ${cor}[ 10 ]${reset} Utilidades de call
-    
-      ${cor}[ 11 ]${reset} Customizar
-      ${cor}[ 12 ]${reset} Sair
-`);
+	console.log(
+		"\n" +
+			opcoesMenu
+				.map(
+					(opcao) => `      ${cor}[ ${opcao.id} ]${reset} ${opcao.description}`,
+				)
+				.join("\n") +
+			"\n",
+	);
 
-	const opcao = readlineSync.question("> ");
-	switch (opcao) {
-		case "1":
-			await clearUnica();
-			break;
-		case "2":
-			await clearAbertas();
-			break;
-		case "3":
-			await clearPackage();
-			break;
-		case "4":
-			await removerAmigos();
-			break;
-		case "5":
-			await removerServidores();
-			break;
-		case "6":
-			await fecharDMs();
-			break;
-		case "7":
-			await triggerClear();
-			break;
-		case "8":
-			await userInfo();
-			break;
-		case "9":
-			await abrirDMs();
-			break;
-		case "10":
-			await utilidadesCall();
-			break;
-		case "11":
-			await configurar();
-			break;
-		case "12":
-		case "sair":
-			console.clear();
-			process.exit(0);
-			break;
-		default:
-			console.clear();
-			console.log(`${erro}[X] ${reset}Opção inválida, tente novamente.`);
-			await sleep(1.5);
-			await menu(client);
-			break;
-	}
+	const opcaoEscolhida = readlineSync.question("> ");
+	return opcaoEscolhida;
 }
 
-async function checarUpdates() {
-	if (
-		(
-			await (
-				await fetch(
-					"https://api.github.com/repos/martins-sys/147clear/releases/latest",
-				)
-			).json()
-		).tag_name !== VERSAO_ATUAL
-	) {
-		return true;
+async function menu(client) {
+	const opcao = await exibirMenu();
+	const opcaoSelecionada = opcoesMenu.find((op) => op.id === opcao);
+
+	if (opcaoSelecionada) {
+		try {
+			await opcaoSelecionada.function();
+		} catch (error) {
+			console.error(`${erro}[X] ${reset} Ocorreu um erro ao executar a ação.`);
+		}
+	} else {
+		console.clear();
+		console.log(`${erro}[X] ${reset} Opção inválida, tente novamente.`);
+		await sleep(1.5);
+		await menu(client);
 	}
-	return false;
 }
 
 async function iniciarCliente() {
